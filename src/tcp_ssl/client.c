@@ -1,16 +1,17 @@
+#include <netdb.h>
+#include <netinet/in.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define PORT 8000
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int sockfd, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
@@ -28,6 +29,14 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    // SSL のコンテキストを作成する
+    SSL_CTX *ctx;
+    ctx = SSL_CTX_new(SSLv23_client_method());
+    if (ctx == NULL) {
+        perror("ERROR creating SSL context");
+        exit(1);
+    }
+
     // サーバーのホスト名を取得する
     server = gethostbyname(argv[1]);
     if (server == NULL) {
@@ -36,21 +45,43 @@ int main(int argc, char *argv[])
     }
 
     // 接続先アドレスを設定する
-    bzero((char *) &serv_addr, sizeof(serv_addr));
+    bzero((char *)&serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,
+          server->h_length);
     serv_addr.sin_port = htons(PORT);
 
     // サーバーに接続する
-    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        perror("ERROR connecting");
+    // if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) <
+    // 0) {
+    //     perror("ERROR connecting");
+    //     exit(1);
+    // }
+
+    // SSL の接続を作成する
+    SSL *ssl;
+    ssl = SSL_new(ctx);
+    if (ssl == NULL) {
+        perror("ERROR creating SSL connection");
+        exit(1);
+    }
+
+    // ソケットと SSL の接続を紐付ける
+    if (SSL_set_fd(ssl, sockfd) == 0) {
+        perror("ERROR linking socket and SSL connection");
+        exit(1);
+    }
+
+    // SSL の接続を開始する
+    if (SSL_connect(ssl) <= 0) {
+        ERR_print_errors_fp(stderr);
         exit(1);
     }
 
     // データを送信する
     bzero(buffer, 256);
     strcpy(buffer, argv[2]);
-    n = write(sockfd, buffer, strlen(buffer));
+    n = SSL_write(ssl, buffer, strlen(buffer));
     if (n < 0) {
         perror("ERROR writing to socket");
         exit(1);
@@ -58,7 +89,7 @@ int main(int argc, char *argv[])
 
     // データを受信する
     bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
+    n = SSL_read(ssl, buffer, 255);
     if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
@@ -66,7 +97,15 @@ int main(int argc, char *argv[])
 
     printf("Message from server: %s\n", buffer);
 
+    // SSL の接続をクローズする
+    SSL_shutdown(ssl);
+    SSL_free(ssl);
+
+    // ソケットをクローズする
     close(sockfd);
+
+    // SSL のコンテキストを破棄する
+    SSL_CTX_free(ctx);
 
     return 0;
 }
