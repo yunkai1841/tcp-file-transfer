@@ -11,5 +11,6 @@ server: server.c
 client: client.c
 	$(CC) $(OPT) -o client client.c
 
+.PHONY: clean
 clean:
 	rm -f server client
