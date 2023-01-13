@@ -9,6 +9,12 @@
 
 #include "error.h"
 
+#ifdef DEBUG
+#define DEBUG_PRINT(...) printf(__VA_ARGS__)
+#else
+#define DEBUG_PRINT(...)
+#endif
+
 void send_msg(int sockfd, char* msg) {
     int n;
     char buffer[256];
@@ -18,7 +24,7 @@ void send_msg(int sockfd, char* msg) {
     if (n < 0) {
         exit_with_msg("ERROR writing to socket");
     }
-    printf("send %d bytes\n", n);
+    DEBUG_PRINT("send %d bytes\n", n);
 
     // 確認メッセージを受信する
     memset(buffer, 0, 256);
@@ -26,7 +32,7 @@ void send_msg(int sockfd, char* msg) {
     if (n < 0) {
         exit_with_msg("ERROR reading from socket");
     }
-    printf("Message from server: %s\n", buffer);
+    DEBUG_PRINT("Message from server: %s\n", buffer);
 }
 
 void receive_msg(int sockfd, char* buffer, int size) {
@@ -38,11 +44,12 @@ void receive_msg(int sockfd, char* buffer, int size) {
     if (n < 0) {
         exit_with_msg("ERROR reading from socket");
     }
-    printf("Message from server: %s\n", buffer);
+    DEBUG_PRINT("Message from server: %s\n", buffer);
 
     // 確認メッセージを送信する
     n = send(sockfd, "OK", 2, 0);
     if (n < 0) {
         exit_with_msg("ERROR writing to socket");
     }
+    DEBUG_PRINT("send %d bytes\n", n);
 }
