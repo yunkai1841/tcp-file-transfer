@@ -11,6 +11,7 @@
 #include "util/msg.h"
 
 #define PORT 8000
+#define SERVER_DIR "dir"
 
 void send_file(int sockfd, char *filename) {
     FILE *fp;
@@ -62,10 +63,16 @@ void send_filelist(int sockfd, char *dirname) {
     for (int i = 0; i < file_count; i++) {
         printf("%s\n", file_list[i]);
     }
+
+    // ファイル数を送信する
+    char buffer[256];
+    sprintf(buffer, "%d", file_count);
+    send_msg(sockfd, buffer);
+
+    // ファイル名を送信する
     for (int i = 0; i < file_count; i++) {
         send_msg(sockfd, file_list[i]);
     }
-    send_msg(sockfd, "END");
 }
 
 int main() {
@@ -103,7 +110,33 @@ int main() {
     }
     printf("connected\n");
 
-    receive_msg(new_sockfd, buffer, 256);
+    while (1) {
+        char command[256];
+        char filename[256];
+
+        // コマンドを受信する
+        receive_msg(new_sockfd, command, 256);
+        printf("command: %s\n", command);
+
+        if (strcmp(command, "ls") == 0) {
+            // ファイルリストを送信する
+            send_filelist(new_sockfd, SERVER_DIR);
+        } else if (strcmp(command, "get") == 0) {
+            // ファイル名を受信する
+            receive_msg(new_sockfd, filename, 256);
+            printf("filename: %s\n", filename);
+
+            char path[256];
+            sprintf(path, "%s/%s", SERVER_DIR, filename);
+
+            // ファイルを送信する
+            send_file(new_sockfd, path);
+        } else if (strcmp(command, "exit") == 0) {
+            break;
+        } else {
+            exit_with_msg("ERROR unknown command");
+        }
+    }
 
     close(new_sockfd);
     close(sockfd);

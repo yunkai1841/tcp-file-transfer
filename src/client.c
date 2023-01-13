@@ -55,6 +55,26 @@ void receive_file(int sockfd, char *filename) {
     printf("end receiving file\n");
 }
 
+void receive_filelist(int sockfd) {
+    char file_list[MAX_FILES][NAME_MAX + 1];
+    int file_count;
+    char buffer[256];
+    int i;
+
+    // ファイル数を受信する
+    memset(buffer, 0, 256);
+    receive_msg(sockfd, buffer, 256);
+
+    file_count = atoi(buffer);
+    printf("file count: %d\n", file_count);
+
+    // ファイル名を受信する
+    for (i = 0; i < file_count; i++) {
+        receive_msg(sockfd, file_list[i], NAME_MAX + 1);
+        printf("%s\n", file_list[i]);
+    }
+}
+
 int main(int argc, char *argv[]) {
     int sockfd, n;
     struct sockaddr_in serv_addr;
@@ -95,7 +115,31 @@ int main(int argc, char *argv[]) {
     }
     printf("connected\n");
 
-    send_msg(sockfd, "Hello");
+    while (1) {
+        char command[256];
+        char filename[256];
+
+        printf("command: ");
+        scanf("%s", command);
+
+        if (strcmp(command, "ls") == 0) {
+            // ファイル一覧を取得する
+            send_msg(sockfd, "ls");
+            receive_filelist(sockfd);
+        } else if (strcmp(command, "get") == 0) {
+            send_msg(sockfd, "get");
+            // ファイルを取得する
+            printf("filename: ");
+            scanf("%s", filename);
+            send_msg(sockfd, filename);
+            receive_file(sockfd, filename);
+        } else if (strcmp(command, "exit") == 0) {
+            send_msg(sockfd, "exit");
+            break;
+        } else {
+            printf("unknown command: %s\n", command);
+        }
+    }
 
     close(sockfd);
 
