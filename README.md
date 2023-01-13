@@ -1,11 +1,11 @@
-# TCP File Transfer
+# TCP File Server and Client
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yunkai1841/os-b-assignment/test-build.yml)
 
 オペレーティングシステムBの課題
 
 ソケットAPI（システムコール）を用いたプログラム
 
-C言語で、TCP通信を用いたファイルサーバーを実装しました。
+C言語で、TCP通信を用いたファイルサーバーとクライアントを実装しました。
 
 ## Build
 ```bash
