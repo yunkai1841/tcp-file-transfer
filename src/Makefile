@@ -12,8 +12,8 @@ $(LIBS): util/%.o: util/%.c
 	$(CC) $(CFLAG) $(OPT) -c $< -o $@
 
 client: client.c
-	$(CC) $(OPT) -o client client.c
+	$(CC) $(OPT) -o client client.c $(LIBS)
 
 .PHONY: clean
 clean:
-	rm -f server client received.png
+	rm -f server client $(LIBS)
