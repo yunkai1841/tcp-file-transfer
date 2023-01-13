@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     }
 
     // ソケットを作成する
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sockfd < 0) {
         perror("ERROR opening socket");
         exit(1);
@@ -49,32 +49,57 @@ int main(int argc, char *argv[]) {
     }
 
     // ファイルをオープンする
-    if (access(argv[2], F_OK) == -1) {
-        perror("ERROR file not found");
-        exit(1);
-    }
     if (access(argv[2], R_OK) == -1) {
         perror("ERROR file not readable");
         exit(1);
     }
-    if ((fp = fopen(argv[2], "r")) == NULL) {
+    if ((fp = fopen(argv[2], "rb")) == NULL) {
         perror("ERROR file open failed");
         exit(1);
     }
 
-    // データを送信する
-    bzero(buffer, 256);
-    strcpy(buffer, argv[2]);
-    n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) {
+    printf("start sending file\n");
+
+    while (1) {
+        // ファイルからデータを読み込む
+        bzero(buffer, 256);
+        n = fread(buffer, 1, 255, fp);
+        printf("read %d bytes\n", n);
+        if (n < 0) {
+            perror("ERROR reading from file");
+            exit(1);
+        }
+
+        // データを送信する
+        if (send(sockfd, buffer, n, 0) != n) {
+            perror("ERROR writing to socket");
+            exit(1);
+        }
+        printf("send\n");
+
+        // 確認メッセージを受信する
+        bzero(buffer, 256);
+        if (recv(sockfd, buffer, 255, 0) < 0) {
+            perror("ERROR reading from socket");
+            exit(1);
+        }
+        printf("Message from server: %s\n", buffer);
+
+        if (n < 255) {
+            break;
+        }
+    }
+    printf("end of file\n");
+
+    // EOFを送信して終了する
+    if (send(sockfd, "EOF", 3, 0) != 3) {
         perror("ERROR writing to socket");
         exit(1);
     }
 
     // データを受信する
     bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-    if (n < 0) {
+    if (recv(sockfd, buffer, 255, 0) < 0) {
         perror("ERROR reading from socket");
         exit(1);
     }
@@ -82,6 +107,7 @@ int main(int argc, char *argv[]) {
     printf("Message from server: %s\n", buffer);
 
     close(sockfd);
+    fclose(fp);
 
     return 0;
 }
