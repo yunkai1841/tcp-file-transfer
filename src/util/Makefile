@@ -11,6 +11,9 @@ filelist.o: filelist.c
 error.o: error.c
 	$(CC) $(CFLAG) $(OPT) -c error.c -o error.o
 
+msg.o: msg.c
+	$(CC) $(CFLAG) $(OPT) -c msg.c -o msg.o
+
 test: test_filelist test_error
 	./test_filelist .
 	./test_error
