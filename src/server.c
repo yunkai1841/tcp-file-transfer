@@ -6,8 +6,67 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "util/error.h"
+#include "util/filelist.h"
+#include "util/msg.h"
+
 #define PORT 8000
-#define FILENAME "received.png"
+
+void send_file(int sockfd, char *filename) {
+    FILE *fp;
+    char buffer[256];
+    int n;
+
+    // ファイルをオープンする
+    if (access(filename, R_OK) == -1) {
+        exit_with_msg("ERROR file not readable");
+    }
+    if ((fp = fopen(filename, "rb")) == NULL) {
+        exit_with_msg("ERROR file open failed");
+    }
+
+    printf("start sending file\n");
+    while (1) {
+        // ファイルからデータを読み込む
+        memset(buffer, 0, 256);
+        n = fread(buffer, 1, 255, fp);
+        printf("read %d bytes\n", n);
+        if (n < 0) {
+            exit_with_msg("ERROR reading from file");
+        }
+
+        // データを送信する
+        if (send(sockfd, buffer, n, 0) != n) {
+            exit_with_msg("ERROR writing to socket");
+        }
+        printf("send\n");
+
+        // 確認メッセージを受信する
+        memset(buffer, 0, 256);
+        if (recv(sockfd, buffer, 255, 0) < 0) {
+            exit_with_msg("ERROR reading from socket");
+        }
+        printf("Message from server: %s\n", buffer);
+
+        if (n < 255) {
+            break;
+        }
+    }
+    fclose(fp);
+    printf("end sending file\n");
+}
+
+void send_filelist(int sockfd, char *dirname) {
+    char file_list[MAX_FILES][NAME_MAX + 1];
+    int file_count = filelist(dirname, file_list);
+    for (int i = 0; i < file_count; i++) {
+        printf("%s\n", file_list[i]);
+    }
+    for (int i = 0; i < file_count; i++) {
+        send_msg(sockfd, file_list[i]);
+    }
+    send_msg(sockfd, "END");
+}
 
 int main() {
     int sockfd, new_sockfd;
@@ -43,61 +102,8 @@ int main() {
         exit(1);
     }
 
-    // ファイルをオープンする
-    if ((fp = fopen(FILENAME, "wb")) == NULL) {
-        perror("ERROR file open");
-        exit(1);
-    }
-
-    printf("start receiving file\n");
-
-    while (1) {
-        // データを受信する
-        bzero(buffer, 256);
-        n = recv(new_sockfd, buffer, 255, 0);
-        if (n == -1) {
-            perror("ERROR reading from socket");
-            exit(1);
-        }
-        printf("received %d bytes\n", n);
-
-        // ファイルに書き込む
-        if (fwrite(buffer, sizeof(char), n, fp) < n) {
-            perror("ERROR file write");
-            exit(1);
-        }
-        printf("wrote %d bytes\n", n);
-
-        // 確認メッセージを送信する
-        if (send(new_sockfd, "SUCCESS", 18, 0) < 0) {
-            perror("ERROR writing to socket");
-            exit(1);
-        }
-
-        if (n < 255) {
-            break;
-        }
-    }
-    printf("end receiving file\n");
-
-    // データを受信する
-    bzero(buffer, 256);
-    if (recv(new_sockfd, buffer, 255, 0) < 0) {
-        perror("ERROR reading from socket");
-        exit(1);
-    }
-
-    printf("Message from client: %s\n", buffer);
-
-    // データを送信する
-    if (send(new_sockfd, "SUCCESS", 18, 0) < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
-    }
-
     close(new_sockfd);
     close(sockfd);
-    fclose(fp);
 
     return 0;
 }
