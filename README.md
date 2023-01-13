@@ -1,5 +1,5 @@
 # TCP File Server and Client
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yunkai1841/os-b-assignment/test-build.yml)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yunkai1841/tcp-file-transfer/test-build.yml)
 
 オペレーティングシステムBの課題
 
