@@ -43,14 +43,15 @@ int main() {
     }
 
     // 証明書を読み込む
-    if (SSL_CTX_use_certificate_file(ctx, "server.crt", SSL_FILETYPE_PEM) <=
-        0) {
+    if (SSL_CTX_use_certificate_file(ctx, "cert/server.crt",
+                                     SSL_FILETYPE_PEM) <= 0) {
         ERR_print_errors_fp(stderr);
         exit(1);
     }
 
     // 秘密鍵を読み込む
-    if (SSL_CTX_use_PrivateKey_file(ctx, "server.key", SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_PrivateKey_file(ctx, "cert/server.key", SSL_FILETYPE_PEM) <=
+        0) {
         ERR_print_errors_fp(stderr);
         exit(1);
     }

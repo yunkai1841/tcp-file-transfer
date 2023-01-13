@@ -1,9 +1,16 @@
-TOPTARGETS = all clean
+CC = gcc
+LIBS = -lssl -lcrypto
+OPT = -O2
+CFLAG = 
 
-SUBDIRS = $(wildcard */.)
+all: server client
 
-$(TOPTARGETS): $(SUBDIRS)
-$(SUBDIRS):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
+server: server.c
+	$(CC) $(OPT) -o server server.c $(LIBS)
 
-.PHONY: $(TOPTARGETS) $(SUBDIRS)
+client: client.c
+	$(CC) $(OPT) -o client client.c $(LIBS)
+
+.PHONY: clean
+clean:
+	rm -f server client
