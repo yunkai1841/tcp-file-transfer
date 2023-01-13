@@ -1,3 +1,9 @@
+# Build Files
+*
+!*.*
+!*/
+!Makefile
+
 # Prerequisites
 *.d
 
@@ -50,13 +56,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
-# Build Files
-*
-a.out
-!*.*
-!*/
-!Makefile
 
 # Log
 log/
