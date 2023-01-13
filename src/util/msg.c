@@ -29,13 +29,12 @@ void send_msg(int sockfd, char* msg) {
     printf("Message from server: %s\n", buffer);
 }
 
-char* receive_msg(int sockfd) {
+void receive_msg(int sockfd, char* buffer, int size) {
     int n;
-    char buffer[256];
 
     // データを受信する
-    memset(buffer, 0, 256);
-    n = recv(sockfd, buffer, 255, 0);
+    memset(buffer, 0, size);
+    n = recv(sockfd, buffer, size - 1, 0);
     if (n < 0) {
         exit_with_msg("ERROR reading from socket");
     }
@@ -46,5 +45,4 @@ char* receive_msg(int sockfd) {
     if (n < 0) {
         exit_with_msg("ERROR writing to socket");
     }
-    return buffer;
 }

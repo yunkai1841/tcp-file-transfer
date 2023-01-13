@@ -1,2 +1,2 @@
 void send_msg(int sockfd, char* msg);
-char* recv_msg(int sockfd);
+void receive_msg(int sockfd, char* buffer, int size);
