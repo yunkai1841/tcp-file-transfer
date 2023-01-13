@@ -5,7 +5,38 @@
 
 ソケットAPI（システムコール）を用いたプログラム
 
-## 参考資料
+## Build
+```bash
+make
+```
+
+実行ファイルを削除する場合はcleanを実行
+```bash
+make clean
+```
+
+## Run
+```bash
+./server
+```
+serverを起動した後に別のターミナルで
+```bash
+./client localhost
+```
+を実行すると、clientがserverに接続し、コマンドを送信できる
+
+**Note1:** clientはserverが起動していないと接続できない
+
+**Note2:** localhostはserverのホスト名かIPアドレス
+
+## コマンド一覧
+|コマンド|説明|
+|:--|:--|
+|ls|サーバーディレクトリのファイル一覧を取得|
+|get|ファイルをダウンロード|
+|exit|サーバーとの接続を切断|
+
+## References
 https://daeudaeu.com/c-http-server/
 https://9cguide.appspot.com/17-02.html
 https://www.ibm.com/docs/ja/zos/2.3.0?topic=functions-recv
