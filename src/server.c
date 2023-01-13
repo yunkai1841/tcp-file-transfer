@@ -101,6 +101,9 @@ int main() {
         perror("ERROR on accept");
         exit(1);
     }
+    printf("connected\n");
+
+    receive_msg(new_sockfd, buffer, 256);
 
     close(new_sockfd);
     close(sockfd);
