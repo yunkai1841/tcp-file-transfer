@@ -23,4 +23,4 @@ test_error: error.o
 
 .PHONY: clean
 clean:
-	rm -f *.o test_filelist
+	rm -f *.o test_filelist test_error
