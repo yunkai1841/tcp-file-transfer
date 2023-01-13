@@ -1,0 +1,1 @@
+void exit_with_msg(const char *msg);
