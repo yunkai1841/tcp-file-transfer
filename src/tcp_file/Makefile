@@ -13,4 +13,4 @@ client: client.c
 
 .PHONY: clean
 clean:
-	rm -f server client
+	rm -f server client received.png
