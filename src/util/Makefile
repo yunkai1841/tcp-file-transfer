@@ -16,4 +16,4 @@ test_filelist: filelist.o
 
 .PHONY: clean
 clean:
-	rm -f *.o
+	rm -f *.o test_filelist
