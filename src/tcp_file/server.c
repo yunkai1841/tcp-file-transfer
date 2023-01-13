@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #define PORT 8000
-#define FILENAME "received.jpg"
+#define FILENAME "received.png"
 
 int main() {
     int sockfd, new_sockfd;
