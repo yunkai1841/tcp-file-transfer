@@ -87,7 +87,7 @@ int main() {
         exit(1);
     }
 
-    printf("Message from client: %s", buffer);
+    printf("Message from client: %s\n", buffer);
 
     // データを送信する
     if (send(new_sockfd, "SUCCESS", 18, 0) < 0) {
