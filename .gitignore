@@ -61,5 +61,4 @@ dkms.conf
 log/
 
 # Other
-dir/
 .vscode/
