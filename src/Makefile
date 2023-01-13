@@ -1,9 +1,19 @@
-TOPTARGETS = all clean
+CC = gcc
+LIBS = util/msg.o util/filelist.o util/error.o
+OPT = -O2
+CFLAG =
 
-SUBDIRS = $(wildcard */.)
+all: server client
 
-$(TOPTARGETS): $(SUBDIRS)
-$(SUBDIRS):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
+server: server.c $(LIBS)
+	$(CC) $(OPT) -o server server.c $(LIBS)
 
-.PHONY: $(TOPTARGETS) $(SUBDIRS)
+$(LIBS): util/%.o: util/%.c
+	$(CC) $(CFLAG) $(OPT) -c $< -o $@
+
+client: client.c
+	$(CC) $(OPT) -o client client.c
+
+.PHONY: clean
+clean:
+	rm -f server client received.png
