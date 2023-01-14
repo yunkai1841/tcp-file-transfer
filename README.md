@@ -1,5 +1,6 @@
 # TCP File Server and Client
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yunkai1841/tcp-file-transfer/test-build.yml)
+![GitHub license](https://img.shields.io/github/license/yunkai1841/tcp-file-transfer)
 
 オペレーティングシステムBの課題
 
