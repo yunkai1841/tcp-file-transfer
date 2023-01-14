@@ -26,7 +26,7 @@ void receive_file(int sockfd, char *filename) {
     printf("start receiving file\n");
     while (1) {
         // データを受信する
-        bzero(buffer, 256);
+        memset(buffer, 0, 256);
         n = recv(sockfd, buffer, 255, 0);
         if (n == -1) {
             perror("ERROR reading from socket");
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 接続先アドレスを設定する
-    bzero((char *)&serv_addr, sizeof(serv_addr));
+    memset((char *)&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
