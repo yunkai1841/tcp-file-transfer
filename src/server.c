@@ -112,7 +112,7 @@ int main() {
 
     while (1) {
         char command[256];
-        char filename[256];
+        char filename[NAME_MAX + 1];
 
         // コマンドを受信する
         receive_msg(new_sockfd, command, 256);
@@ -126,7 +126,7 @@ int main() {
             receive_msg(new_sockfd, filename, 256);
             printf("filename: %s\n", filename);
 
-            char path[256];
+            char path[PATH_MAX];
             sprintf(path, "%s/%s", SERVER_DIR, filename);
 
             // ファイルを送信する
