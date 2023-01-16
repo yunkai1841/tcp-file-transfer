@@ -20,10 +20,12 @@ make clean
 
 ## Run
 ```bash
+cd src
 ./server
 ```
 serverを起動した後に別のターミナルで
 ```bash
+cd src
 ./client localhost
 ```
 を実行すると、clientがserverに接続し、コマンドを送信できる
@@ -32,12 +34,23 @@ serverを起動した後に別のターミナルで
 
 **Note2:** localhostはserverのホスト名かIPアドレス
 
+**Note3:** current directoryはsrcである必要がある
+
 ## コマンド一覧
 |コマンド|説明|
 |:--|:--|
 |ls|サーバーディレクトリのファイル一覧を取得|
 |get|ファイルをダウンロード|
 |exit|サーバーとの接続を切断|
+
+## 実行例
+1. lsコマンドを実行
+2. getコマンドを実行
+    - test.txtをダウンロード
+3. exitコマンドを実行
+
+![server](images/server.png)
+![client](images/client.png)
 
 ## References
 https://daeudaeu.com/c-http-server/
