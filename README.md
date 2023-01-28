@@ -1,9 +1,30 @@
-# os-b-assignment
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yunkai1841/tcp-file-transfer/test-build.yml)
+# TCP-messenger
+Send a single message to a server use TCP.
 
-オペレーティングシステムBの課題
+## Build
+```bash
+make all
+```
+or
+```bash
+cd src
+gcc -o server server.c
+gcc -o client client.c
+```
 
-ソケットAPI（システムコール）を用いたプログラム
+## Usage
+Server
+```bash
+cd src
+./server
+```
+
+Client
+```bash
+cd src
+./client <server hostname or ip> <message>
+```
+
 
 ## 参考資料
 https://daeudaeu.com/c-http-server/
