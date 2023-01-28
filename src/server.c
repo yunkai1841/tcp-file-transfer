@@ -43,7 +43,7 @@ int main() {
 
     // データを受信する
     memset(buffer, 0, 256);
-    n = read(new_sockfd, buffer, 255);
+    n = recv(new_sockfd, buffer, 255, 0);
     if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
@@ -52,7 +52,7 @@ int main() {
     printf("Message from client: %s\n", buffer);
 
     // データを送信する
-    n = write(new_sockfd, "I got your message", 18);
+    n = send(new_sockfd, "I got your message", 18, 0);
     if (n < 0) {
         perror("ERROR writing to socket");
         exit(1);

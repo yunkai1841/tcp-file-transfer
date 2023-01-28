@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     // データを送信する
     memset(buffer, 0, 256);
     strcpy(buffer, argv[2]);
-    n = write(sockfd, buffer, strlen(buffer));
+    n = send(sockfd, buffer, strlen(buffer), 0);
     if (n < 0) {
         perror("ERROR writing to socket");
         exit(1);
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     // データを受信する
     memset(buffer, 0, 256);
-    n = read(sockfd, buffer, 255);
+    n = recv(sockfd, buffer, 255, 0);
     if (n < 0) {
         perror("ERROR reading from socket");
         exit(1);
