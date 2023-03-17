@@ -18,6 +18,12 @@ void receive_file(int sockfd, char *filename) {
     char buffer[256];
     int n;
 
+    // ファイルサイズを受信する
+    printf("receive file size\n");
+    receive_msg(sockfd, buffer, 256);
+    int file_size = atoi(buffer);
+    printf("file size: %d\n", file_size);
+
     // ファイルをオープンする
     if ((fp = fopen(filename, "wb")) == NULL) {
         exit_with_msg("ERROR file open failed");
@@ -47,7 +53,9 @@ void receive_file(int sockfd, char *filename) {
             exit(1);
         }
 
-        if (n < 255) {
+        // ファイルサイズが0になったら終了する
+        file_size -= n;
+        if (file_size == 0) {
             break;
         }
     }
