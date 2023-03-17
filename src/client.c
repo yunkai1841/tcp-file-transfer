@@ -30,7 +30,7 @@ void receive_file(int sockfd, char *filename) {
     }
 
     printf("start receiving file\n");
-    while (1) {
+    while (file_size > 0) {
         // データを受信する
         memset(buffer, 0, 256);
         n = recv(sockfd, buffer, 255, 0);
@@ -55,9 +55,6 @@ void receive_file(int sockfd, char *filename) {
 
         // ファイルサイズが0になったら終了する
         file_size -= n;
-        if (file_size == 0) {
-            break;
-        }
     }
     fclose(fp);
     printf("end receiving file\n");
