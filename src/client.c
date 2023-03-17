@@ -18,13 +18,19 @@ void receive_file(int sockfd, char *filename) {
     char buffer[256];
     int n;
 
+    // ファイルサイズを受信する
+    printf("receive file size\n");
+    receive_msg(sockfd, buffer, 256);
+    int file_size = atoi(buffer);
+    printf("file size: %d\n", file_size);
+
     // ファイルをオープンする
     if ((fp = fopen(filename, "wb")) == NULL) {
         exit_with_msg("ERROR file open failed");
     }
 
     printf("start receiving file\n");
-    while (1) {
+    while (file_size > 0) {
         // データを受信する
         memset(buffer, 0, 256);
         n = recv(sockfd, buffer, 255, 0);
@@ -47,9 +53,8 @@ void receive_file(int sockfd, char *filename) {
             exit(1);
         }
 
-        if (n < 255) {
-            break;
-        }
+        // ファイルサイズが0になったら終了する
+        file_size -= n;
     }
     fclose(fp);
     printf("end receiving file\n");

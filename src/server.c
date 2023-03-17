@@ -26,8 +26,18 @@ void send_file(int sockfd, char *filename) {
         exit_with_msg("ERROR file open failed");
     }
 
+    // ファイルサイズを取得する
+    fseek(fp, 0, SEEK_END);
+    int file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    // ファイルサイズを送信する
+    printf("send file size: %d\n", file_size);
+    sprintf(buffer, "%d", file_size);
+    send_msg(sockfd, buffer);
+
     printf("start sending file\n");
-    while (1) {
+    while (file_size > 0) {
         // ファイルからデータを読み込む
         memset(buffer, 0, 256);
         n = fread(buffer, 1, 255, fp);
@@ -49,9 +59,8 @@ void send_file(int sockfd, char *filename) {
         }
         printf("Message from server: %s\n", buffer);
 
-        if (n < 255) {
-            break;
-        }
+        // ファイルサイズが0になったら終了する
+        file_size -= n;
     }
     fclose(fp);
     printf("end sending file\n");
