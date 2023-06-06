@@ -10,12 +10,18 @@
 #include "util/filelist.h"
 #include "util/msg.h"
 
-#define PORT 8000
-#define SERVER_DIR "dir"
+#define DEFAULT_PORT 8080
+
+void send_http_response(int sockfd, char *filename) {
+    char buffer[256];
+    sprintf(buffer, "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n");
+    send_msg(sockfd, buffer);
+    send_file(sockfd, filename);
+}
 
 void send_file(int sockfd, char *filename) {
     FILE *fp;
-    char buffer[256];
+    char buffer[2048];
     int n;
 
     // ファイルをオープンする
@@ -26,71 +32,32 @@ void send_file(int sockfd, char *filename) {
         exit_with_msg("ERROR file open failed");
     }
 
-    // ファイルサイズを取得する
+    // ファイルのサイズを取得する
     fseek(fp, 0, SEEK_END);
     int file_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    // ファイルサイズを送信する
-    printf("send file size: %d\n", file_size);
-    sprintf(buffer, "%d", file_size);
-    send_msg(sockfd, buffer);
-
-    printf("start sending file\n");
-    while (file_size > 0) {
-        // ファイルからデータを読み込む
-        memset(buffer, 0, 256);
-        n = fread(buffer, 1, 255, fp);
-        printf("read %d bytes\n", n);
-        if (n < 0) {
-            exit_with_msg("ERROR reading from file");
-        }
-
-        // データを送信する
-        if (send(sockfd, buffer, n, 0) != n) {
-            exit_with_msg("ERROR writing to socket");
-        }
-        printf("send\n");
-
-        // 確認メッセージを受信する
-        memset(buffer, 0, 256);
-        if (recv(sockfd, buffer, 255, 0) < 0) {
-            exit_with_msg("ERROR reading from socket");
-        }
-        printf("Message from server: %s\n", buffer);
-
-        // ファイルサイズが0になったら終了する
-        file_size -= n;
+    // ファイルの内容を送信する
+    while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0) {
+        send(sockfd, buffer, n, 0);
     }
+
     fclose(fp);
     printf("end sending file\n");
 }
 
-void send_filelist(int sockfd, char *dirname) {
-    char file_list[MAX_FILES][NAME_MAX + 1];
-    int file_count = filelist(dirname, file_list);
-    for (int i = 0; i < file_count; i++) {
-        printf("%s\n", file_list[i]);
-    }
-
-    // ファイル数を送信する
-    char buffer[256];
-    sprintf(buffer, "%d", file_count);
-    send_msg(sockfd, buffer);
-
-    // ファイル名を送信する
-    for (int i = 0; i < file_count; i++) {
-        send_msg(sockfd, file_list[i]);
-    }
-}
-
-int main() {
+int main(int argc, char *argv[]) {
     int sockfd, new_sockfd;
     socklen_t clilen;
-    char buffer[256];
+    char buffer[10000];
     struct sockaddr_in serv_addr, cli_addr;
     int n;
     FILE *fp;
+    // port番号を指定する
+    int PORT = DEFAULT_PORT;
+    if (argc > 1) {
+        PORT = atoi(argv[1]);
+    }
 
     // ソケットを作成する
     sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -109,41 +76,46 @@ int main() {
         exit(1);
     }
 
-    // クライアントからの接続を待つ
-    listen(sockfd, 5);
-    clilen = sizeof(cli_addr);
-    new_sockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-    if (new_sockfd < 0) {
-        perror("ERROR on accept");
-        exit(1);
-    }
-    printf("connected\n");
-
+    // webサーバーの処理
     while (1) {
-        char command[256];
-        char filename[NAME_MAX + 1];
+        // クライアントからの接続を待つ
+        listen(sockfd, 5);
+        clilen = sizeof(cli_addr);
+        new_sockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+        if (new_sockfd < 0) {
+            perror("ERROR on accept");
+            exit(1);
+        }
+        printf("connected\n");
 
-        // コマンドを受信する
-        receive_msg(new_sockfd, command, 256);
-        printf("command: %s\n", command);
+        // GETリクエストを受信する
+        memset(buffer, 0, sizeof(buffer));
+        n = recv(new_sockfd, buffer, sizeof(buffer) - 1, 0);
+        if (n < 0) {
+            perror("ERROR reading from socket");
+            exit(1);
+        }
+        printf("%s\n", buffer);
+        sleep(1);
 
-        if (strcmp(command, "ls") == 0) {
-            // ファイルリストを送信する
-            send_filelist(new_sockfd, SERVER_DIR);
-        } else if (strcmp(command, "get") == 0) {
-            // ファイル名を受信する
-            receive_msg(new_sockfd, filename, 256);
-            printf("filename: %s\n", filename);
-
-            char path[PATH_MAX];
-            sprintf(path, "%s/%s", SERVER_DIR, filename);
-
-            // ファイルを送信する
-            send_file(new_sockfd, path);
-        } else if (strcmp(command, "exit") == 0) {
-            break;
+        // HTMLファイルを送信する
+        if (strncmp(buffer, "GET / ", 6) == 0) {
+            printf("send index.html\n");
+            send_http_response(new_sockfd, "index.html");
+        } else if (strncmp(buffer, "GET /dir/", 9) == 0) {
+            char filename[NAME_MAX + 1];
+            // 9文字目から"HTTP/" まで
+            int request_header_end = strstr(buffer + 9, " HTTP/1.1") - buffer;
+            printf("request_header_end: %d\n", request_header_end);
+            strncpy(filename, buffer + 4, request_header_end - 4);
+            filename[request_header_end - 4] = '\0';
+            char path[NAME_MAX + 1];
+            sprintf(path, ".%s", filename);
+            printf("send %s\n", path);
+            send_http_response(new_sockfd, path);
         } else {
-            exit_with_msg("ERROR unknown command");
+            printf("send 404.html\n");
+            send_http_response(new_sockfd, "404.html");
         }
     }
 

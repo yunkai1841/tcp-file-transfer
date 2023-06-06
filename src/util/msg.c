@@ -27,12 +27,12 @@ void send_msg(int sockfd, char* msg) {
     DEBUG_PRINT("send %d bytes\n", n);
 
     // 確認メッセージを受信する
-    memset(buffer, 0, 256);
-    n = recv(sockfd, buffer, 255, 0);
-    if (n < 0) {
-        exit_with_msg("ERROR reading from socket");
-    }
-    DEBUG_PRINT("Message from server: %s\n", buffer);
+    // memset(buffer, 0, 256);
+    // n = recv(sockfd, buffer, 255, 0);
+    // if (n < 0) {
+    //     exit_with_msg("ERROR reading from socket");
+    // }
+    // DEBUG_PRINT("Message from server: %s\n", buffer);
 }
 
 void receive_msg(int sockfd, char* buffer, int size) {
